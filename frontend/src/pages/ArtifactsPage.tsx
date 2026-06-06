@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/atom-one-dark.css";
 import { useRequiredProjectId } from "../app/hooks/useRequiredProjectId";
 import { buildInterviewPath, routePaths } from "../app/routePaths";
 import { generateArtifacts, getArtifacts } from "../api/artifactsApi";
@@ -8,6 +11,29 @@ import { getProjectById } from "../api/projectsApi";
 import PageHero from "../components/PageHero";
 import Panel from "../components/Panel";
 import type { ArtifactItemResponse } from "../types/artifact";
+
+const artifactLabelMap: Record<string, string> = {
+  ProjectBrief: "Project Summary",
+  SuggestedTechStack: "Suggested TechStack",
+  SetupGuide: "Setup Guide",
+  UserStories: "User Stories",
+  CodebaseSummary: "Codebase Summary",
+  ProjectArchitecture: "Project Architecture",
+};
+
+function getArtifactLabel(artifactType: string): string {
+  const mapped = artifactLabelMap[artifactType];
+  if (mapped) {
+    return mapped;
+  }
+
+  return artifactType
+    .replace(/[-_]+/g, " ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
 
 export default function ArtifactsPage() {
   const navigate = useNavigate();
@@ -18,6 +44,28 @@ export default function ArtifactsPage() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+
+  
+  // Custom code component to render mermaid diagrams
+  const CodeComponent = ({ inline, className, children, ...props }: any) => {
+    const match = /language-(\w+)/.exec(className || "");
+    const lang = match ? match[1] : "";
+
+    if (lang === "mermaid" && !inline) {
+      return (
+        <div className="mermaid" key={Math.random()}>
+          {String(children).replace(/\n$/, "")}
+        </div>
+      );
+    }
+
+    return (
+      <code className={className} {...props}>
+        {children}
+      </code>
+    );
+  };
 
   useEffect(() => {
     let isActive = true;
@@ -133,7 +181,7 @@ export default function ArtifactsPage() {
                     aria-selected={isActive}
                     onClick={() => setActiveArtifactType(artifact.artifactType)}
                   >
-                    {artifact.artifactType}
+                    {getArtifactLabel(artifact.artifactType)}
                   </button>
                 );
               })}
@@ -141,8 +189,14 @@ export default function ArtifactsPage() {
 
             {activeArtifact ? (
               <article className="artifact-card artifact-card-active" role="tabpanel">
-                <h3>{activeArtifact.artifactType}</h3>
-                <ReactMarkdown>{activeArtifact.contentMarkdown}</ReactMarkdown>
+                <h3>{getArtifactLabel(activeArtifact.artifactType)}</h3>
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  rehypePlugins={[rehypeHighlight]}
+                  components={{ code: CodeComponent }}
+                >
+                  {activeArtifact.contentMarkdown}
+                </ReactMarkdown>
               </article>
             ) : null}
           </div>
