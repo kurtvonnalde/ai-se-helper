@@ -1,0 +1,25 @@
+.artifacts-wrap {
+  margin-top: 26px;
+}
+
+.artifact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.artifact-card {
+  padding: 16px;
+}
+
+.artifact-card h1,
+.artifact-card h2,
+.artifact-card h3,
+.artifact-card h4 {
+  margin-top: 0;
+}
+
+.artifact-card ul,
+.artifact-card ol {
+  padding-left: 20px;
+}

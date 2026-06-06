@@ -1,0 +1,55 @@
+.reveal-up {
+  animation: revealUp 0.48s ease both;
+}
+
+.delay-1 {
+  animation-delay: 0.08s;
+}
+
+.delay-2 {
+  animation-delay: 0.16s;
+}
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .app-shell {
+    padding: 20px 14px 32px;
+  }
+
+  .grid-two,
+  .interview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-card,
+  .panel {
+    padding: 18px;
+  }
+
+  .project-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .project-actions {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .btn-secondary,
+  .btn-primary,
+  .btn-ghost,
+  .project-actions .btn {
+    width: 100%;
+  }
+}
