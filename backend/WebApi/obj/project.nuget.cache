@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "dgSpecHash": "ssH6ACAEFSI=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\kurt.vonn.alde\\Documents\\My Folder\\Personal Projectz\\ai-se-helper\\backend\\WebApi\\WebApi.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\azure.ai.openai\\2.9.0-beta.1\\azure.ai.openai.2.9.0-beta.1.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\azure.core\\1.51.1\\azure.core.1.51.1.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.7\\microsoft.aspnetcore.openapi.10.0.7.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\10.0.2\\microsoft.bcl.asyncinterfaces.10.0.2.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\microsoft.entityframeworkcore\\10.0.0\\microsoft.entityframeworkcore.10.0.0.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\10.0.0\\microsoft.entityframeworkcore.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\microsoft.entityframeworkcore.analyzers\\10.0.0\\microsoft.entityframeworkcore.analyzers.10.0.0.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\microsoft.entityframeworkcore.inmemory\\10.0.0\\microsoft.entityframeworkcore.inmemory.10.0.0.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\openai\\2.9.1\\openai.2.9.1.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\scalar.aspnetcore\\2.14.14\\scalar.aspnetcore.2.14.14.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\system.clientmodel\\1.9.0\\system.clientmodel.1.9.0.nupkg.sha512",
+    "C:\\Users\\kurt.vonn.alde\\.nuget\\packages\\system.memory.data\\10.0.1\\system.memory.data.10.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}
