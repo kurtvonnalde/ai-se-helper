@@ -1,0 +1,75 @@
+.artifacts-wrap {
+  margin-top: 26px;
+}
+
+.artifact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.artifacts-tabs-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--panel-bg);
+}
+
+.artifacts-tabs {
+  display: flex;
+  gap: 0;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-subtle);
+}
+
+.artifact-tab {
+  border: 0;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  padding: 10px 14px;
+  background: transparent;
+  color: var(--text);
+  font: 500 14px/1.2 var(--display-font);
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+.artifact-tab:hover {
+  background: #ffffff;
+}
+
+.artifact-tab-active {
+  color: var(--primary);
+  background: #ffffff;
+  box-shadow: inset 0 -2px 0 var(--primary);
+}
+
+.artifact-card {
+  padding: 14px;
+}
+
+.artifact-card-active {
+  min-height: 52vh;
+}
+
+.artifact-card h1,
+.artifact-card h2,
+.artifact-card h3,
+.artifact-card h4 {
+  margin-top: 0;
+}
+
+.artifact-card h3 {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.artifact-card ul,
+.artifact-card ol {
+  padding-left: 20px;
+}

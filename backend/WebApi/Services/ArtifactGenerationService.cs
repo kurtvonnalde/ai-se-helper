@@ -2,6 +2,7 @@ using WebApi.DTOs.Artifacts;
 using WebApi.Interfaces;
 using WebApi.Data;
 using WebApi.Entities;
+using WebApi.Entities.Enum;
 using Microsoft.EntityFrameworkCore;
 
 namespace WebApi.Services;
@@ -74,12 +75,26 @@ public class ArtifactGenerationService(AppDbContext dbContext) : IArtifactGenera
         - As a planner, I want a setup guide so that I can begin implementation faster.
         """;
 
+        var codebaseSummary = $"""
+        # Codebase Summary
+        this is a sample codebase summary
+        """;
+
+        var projectArchitecture = $"""
+        # Project Architecture
+        this is a sample project architecture
+        """;
+
+
+
         var artifacts = new List<ArtifactItemResponse>
         {
-            new() { ArtifactType = "project-brief", ContentMarkdown = projectBrief },
-            new() { ArtifactType = "suggested-tech-stack", ContentMarkdown = techStack },
-            new() { ArtifactType = "setup-guide", ContentMarkdown = setupGuide },
-            new() { ArtifactType = "user-stories", ContentMarkdown = userStories }
+            new() { ArtifactType = ArtifactTypes.ProjectBrief, ContentMarkdown = projectBrief },
+            new() { ArtifactType = ArtifactTypes.SuggestedTechStack, ContentMarkdown = techStack },
+            new() { ArtifactType = ArtifactTypes.SetupGuide, ContentMarkdown = setupGuide },
+            new() { ArtifactType = ArtifactTypes.UserStories, ContentMarkdown = userStories },
+            new() { ArtifactType = ArtifactTypes.CodebaseSummary, ContentMarkdown = codebaseSummary },
+            new() { ArtifactType = ArtifactTypes.ProjectArchitecture, ContentMarkdown = projectArchitecture }
         };
 
         var artifactEntities = new List<GeneratedArtifact>(artifacts.Count);
