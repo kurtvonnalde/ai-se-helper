@@ -1,13 +1,17 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap");
-
 :root {
-  --text: #142126;
-  --muted: #5a6b73;
-  --border: #d8dde0;
-  --bg: #f3f0e8;
-  --primary: #188c8a;
-  --display-font: "Space Grotesk", "Segoe UI", sans-serif;
-  --mono-font: "IBM Plex Mono", Consolas, monospace;
+  --text: #202938;
+  --muted: #667085;
+  --border: #d9dee7;
+  --border-strong: #c7cfdb;
+  --bg: #f6f8fb;
+  --panel-bg: #ffffff;
+  --panel-subtle: #fafbfc;
+  --primary: #f26b2c;
+  --primary-soft: #fff2eb;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --display-font: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --mono-font: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 * {
@@ -18,10 +22,7 @@ body {
   margin: 0;
   color: var(--text);
   font-family: var(--display-font);
-  background:
-    radial-gradient(circle at 10% 10%, rgba(24, 140, 138, 0.1), transparent 42%),
-    radial-gradient(circle at 86% 18%, rgba(255, 137, 84, 0.14), transparent 40%),
-    linear-gradient(155deg, #f7f4ee, #ece8dd);
+  background: var(--bg);
   min-height: 100svh;
 }
 
@@ -33,23 +34,33 @@ h1,
 h2,
 h3 {
   margin: 0;
-  color: #0f2027;
-  letter-spacing: -0.02em;
+  color: #202938;
+  letter-spacing: 0;
 }
 
 h1 {
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 600;
 }
 
 h2 {
-  font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+  font-weight: 600;
 }
 
 h3 {
   font-size: 1rem;
+  font-weight: 600;
 }
 
 p,
 li {
   line-height: 1.5;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }

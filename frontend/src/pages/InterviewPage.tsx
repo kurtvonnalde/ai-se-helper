@@ -1,4 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useRequiredProjectId } from "../app/hooks/useRequiredProjectId";
+import { buildArtifactsPath, routePaths } from "../app/routePaths";
 import {
   getAnswers,
   getCurrentQuestion,
@@ -14,17 +17,9 @@ import type {
   SubmitAnswerResponse,
 } from "../types/interview";
 
-interface InterviewPageProps {
-  projectId: string;
-  onBack: () => void;
-  onOpenArtifacts: () => void;
-}
-
-export default function InterviewPage({
-  projectId,
-  onBack,
-  onOpenArtifacts,
-}: InterviewPageProps) {
+export default function InterviewPage() {
+  const navigate = useNavigate();
+  const projectId = useRequiredProjectId();
   const [sessionId, setSessionId] = useState("");
   const [questionKey, setQuestionKey] = useState("");
   const [questionText, setQuestionText] = useState("");
@@ -40,32 +35,50 @@ export default function InterviewPage({
     setAnswers(data);
   };
 
-  const initializeInterview = async () => {
-    try {
-      setLoading(true);
-
-      const start = await startInterview(projectId);
-      setSessionId(start.sessionId);
-      setQuestionKey(start.questionKey);
-      setQuestionText(start.questionText);
-      setSessionCompleted(false);
-
-      await loadAnswers();
-    } catch {
-      const current = await getCurrentQuestion(projectId);
-      setSessionId(current.sessionId);
-      setQuestionKey(current.questionKey);
-      setQuestionText(current.questionText);
-      setSessionCompleted(current.sessionCompleted);
-
-      await loadAnswers();
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    initializeInterview();
+    let isActive = true;
+
+    const initializeInterview = async () => {
+      try {
+        setLoading(true);
+
+        const start = await startInterview(projectId);
+        const existingAnswers = await getAnswers(projectId);
+
+        if (!isActive) {
+          return;
+        }
+
+        setSessionId(start.sessionId);
+        setQuestionKey(start.questionKey);
+        setQuestionText(start.questionText);
+        setSessionCompleted(false);
+        setAnswers(existingAnswers);
+      } catch {
+        const current = await getCurrentQuestion(projectId);
+        const existingAnswers = await getAnswers(projectId);
+
+        if (!isActive) {
+          return;
+        }
+
+        setSessionId(current.sessionId);
+        setQuestionKey(current.questionKey);
+        setQuestionText(current.questionText);
+        setSessionCompleted(current.sessionCompleted);
+        setAnswers(existingAnswers);
+      } finally {
+        if (isActive) {
+          setLoading(false);
+        }
+      }
+    };
+
+    void initializeInterview();
+
+    return () => {
+      isActive = false;
+    };
   }, [projectId]);
 
   useEffect(() => {
@@ -109,7 +122,7 @@ export default function InterviewPage({
     try {
       setGenerating(true);
       await generateArtifacts(projectId);
-      onOpenArtifacts();
+      navigate(buildArtifactsPath(projectId));
     } finally {
       setGenerating(false);
     }
@@ -165,10 +178,10 @@ export default function InterviewPage({
     <main className="page page-interview">
       <div className="top-actions reveal-up">
         <div className="action-bar">
-          <button onClick={onBack} className="btn btn-ghost">
+          <button onClick={() => navigate(routePaths.projects)} className="btn btn-ghost">
             Back to Projects
           </button>
-          <button onClick={onOpenArtifacts} className="btn btn-secondary">
+          <button onClick={() => navigate(buildArtifactsPath(projectId))} className="btn btn-secondary">
             Go to Artifacts
           </button>
         </div>

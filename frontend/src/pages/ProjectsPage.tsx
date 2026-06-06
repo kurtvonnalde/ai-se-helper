@@ -1,24 +1,22 @@
 import { type FormEvent, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { buildArtifactsPath, buildInterviewPath } from "../app/routePaths";
 import { createProject, getProjects } from "../api/projectsApi";
 import CountPill from "../components/CountPill";
 import PageHero from "../components/PageHero";
 import Panel from "../components/Panel";
 import type { ProjectResponse } from "../types/project";
 
-interface ProjectsPageProps {
-  onSelectProject: (projectId: string) => void;
-  onOpenArtifacts: (projectId: string) => void;
-}
+const ROWS_PER_PAGE = 10;
 
-export default function ProjectsPage({
-  onSelectProject,
-  onOpenArtifacts,
-}: ProjectsPageProps) {
+export default function ProjectsPage() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<ProjectResponse[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadProjects = async () => {
     const data = await getProjects();
@@ -26,8 +24,30 @@ export default function ProjectsPage({
   };
 
   useEffect(() => {
-    loadProjects();
+    let isActive = true;
+
+    const loadInitialProjects = async () => {
+      const data = await getProjects();
+
+      if (isActive) {
+        setProjects(data);
+      }
+    };
+
+    void loadInitialProjects();
+
+    return () => {
+      isActive = false;
+    };
   }, []);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(projects.length / ROWS_PER_PAGE));
+
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, projects.length]);
 
   const handleCreateProject = async (e: FormEvent) => {
     e.preventDefault();
@@ -46,11 +66,15 @@ export default function ProjectsPage({
       setIsCreateModalOpen(false);
       await loadProjects();
 
-      onSelectProject(created.id);
+      navigate(buildInterviewPath(created.id));
     } finally {
       setLoading(false);
     }
   };
+
+  const totalPages = Math.max(1, Math.ceil(projects.length / ROWS_PER_PAGE));
+  const startIndex = (currentPage - 1) * ROWS_PER_PAGE;
+  const pagedProjects = projects.slice(startIndex, startIndex + ROWS_PER_PAGE);
 
   return (
     <main className="page page-projects">
@@ -60,7 +84,17 @@ export default function ProjectsPage({
         description="Capture project context, run guided interviews, and generate planning artifacts in one flow."
       />
 
-      <div className="top-actions reveal-up delay-1">
+      
+
+      <Panel className="projects-panel reveal-up delay-2">
+        <div className="panel-head projects-panel-head">
+          <div>
+            <h2>Existing Projects</h2>
+            <p className="muted projects-panel-copy">
+              Open an interview, review generated artifacts, or start a new project from the button above.
+            </p>
+          </div>
+          <div className="top-actions reveal-up delay-1">
         <div className="action-bar">
           <button
             type="button"
@@ -71,39 +105,74 @@ export default function ProjectsPage({
           </button>
         </div>
       </div>
-
-      <Panel className="projects-panel reveal-up delay-2">
-        <div className="panel-head projects-panel-head">
-          <div>
-            <h2>Existing Projects</h2>
-            <p className="muted projects-panel-copy">
-              Open an interview, review generated artifacts, or start a new project from the button above.
-            </p>
-          </div>
-          <CountPill count={projects.length} />
         </div>
 
         {projects.length === 0 ? (
           <p className="muted">No projects yet. Create one to start the interview flow.</p>
         ) : (
-          <ul className="project-list project-list-large">
-            {projects.map((project) => (
-              <li key={project.id} className="project-item project-item-large">
-                <div>
+          <div className="projects-table-area">
+            <div className="project-table-header" aria-hidden="true">
+              <span>Project</span>
+              <span>Description</span>
+              <span>Actions</span>
+            </div>
+
+            <ul className="project-list project-list-large project-list-table">
+            {pagedProjects.map((project) => (
+              <li key={project.id} className="project-item project-item-large project-item-table">
+                <div className="project-cell project-title-cell">
                   <h3>{project.title}</h3>
+                </div>
+                <div className="project-cell project-description-cell">
                   <p>{project.description || "No description provided."}</p>
                 </div>
-                <div className="project-actions">
-                  <button className="btn btn-secondary" onClick={() => onSelectProject(project.id)}>
+                <div className="project-actions project-cell project-actions-cell">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => navigate(buildInterviewPath(project.id))}
+                  >
                     Open Interview
                   </button>
-                  <button className="btn btn-ghost" onClick={() => onOpenArtifacts(project.id)}>
+                  <button
+                    className="btn btn-ghost"
+                    onClick={() => navigate(buildArtifactsPath(project.id))}
+                  >
                     View Artifacts
                   </button>
                 </div>
               </li>
             ))}
-          </ul>
+            </ul>
+
+            <div className="pagination-bar" aria-label="Project table pagination">
+              <div className="pagination-group">
+                <span className="pagination-label">Rows per page:</span>
+                <span className="pagination-fixed-value">{ROWS_PER_PAGE}</span>
+              </div>
+
+              <div className="pagination-group">
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage((value) => Math.max(1, value - 1))}
+                  disabled={currentPage === 1}
+                  aria-label="Previous page"
+                >
+                  &lsaquo;
+                </button>
+                <span className="pagination-indicator">{currentPage} / {totalPages}</span>
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => setCurrentPage((value) => Math.min(totalPages, value + 1))}
+                  disabled={currentPage === totalPages}
+                  aria-label="Next page"
+                >
+                  &rsaquo;
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </Panel>
 
