@@ -3,13 +3,27 @@ using WebApi.Interfaces;
 using WebApi.Data;
 using WebApi.Entities;
 using WebApi.Entities.Enum;
+using WebApi.AI.Interfaces;
+using WebApi.AI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace WebApi.Services;
 
 
-public class ArtifactGenerationService(AppDbContext dbContext) : IArtifactGenerationService
+public class ArtifactGenerationService(
+    AppDbContext dbContext,
+    IEnumerable<IArtifactAgent> artifactAgents) : IArtifactGenerationService
 {
+    private static readonly string[] ArtifactOrder =
+    [
+        ArtifactTypes.ProjectBrief,
+        ArtifactTypes.SuggestedTechStack,
+        ArtifactTypes.SetupGuide,
+        ArtifactTypes.UserStories,
+        ArtifactTypes.CodebaseSummary,
+        ArtifactTypes.ProjectArchitecture,
+    ];
+
     public async Task<GenerateArtifactsResponse> GenerateAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
         var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.Id == projectId, cancellationToken)
@@ -28,74 +42,44 @@ public class ArtifactGenerationService(AppDbContext dbContext) : IArtifactGenera
         var answerMap = answers.ToDictionary(x => x.QuestionKey, x => x.AnswerText, StringComparer.OrdinalIgnoreCase);
 
         string Get(string key) => answerMap.TryGetValue(key, out var value) ? value : "Not provided";
-
-        var projectBrief = $"""
-        # Project Brief
-
-        **Project Name:** {project.Name}
-
-        **Description:** {project.Description}
-
-        **Problem Statement:** {Get("problem_statement")}
-
-        **Target Users:** {Get("target_users")}
-
-        **Application Type:** {Get("app_type")}
-        """;
-
-        var techStack = $"""
-        # Suggested Tech Stack
-
-        - Frontend: React + TypeScript
-        - Backend: ASP.NET Core Web API
-        - API Documentation UI: Scalar
-        - Database: SQL Server or PostgreSQL
-        - Hosting: Azure App Service
-        - AI Integration: Azure OpenAI
-        """;
-
-        var setupGuide = $"""
-        # Setup Guide
-
-        1. Clone the repository
-        2. Run the backend API
-        3. Run the React frontend
-        4. Configure environment variables
-        5. Connect backend and frontend API base URL
-        6. Complete the interview workflow
-        7. Generate planning artifacts
-        """;
-
-        var userStories = $"""
-        # User Stories
-
-        - As a planner, I want to answer guided software planning questions so that the system can understand my project idea.
-        - As a planner, I want the system to summarize my idea so that I can review the proposed direction.
-        - As a planner, I want suggested technologies so that I can quickly decide how to build the solution.
-        - As a planner, I want a setup guide so that I can begin implementation faster.
-        """;
-
-        var codebaseSummary = $"""
-        # Codebase Summary
-        this is a sample codebase summary
-        """;
-
-        var projectArchitecture = $"""
-        # Project Architecture
-        this is a sample project architecture
-        """;
-
-
-
-        var artifacts = new List<ArtifactItemResponse>
+        var planningContext = new ProjectPlanningContext
         {
-            new() { ArtifactType = ArtifactTypes.ProjectBrief, ContentMarkdown = projectBrief },
-            new() { ArtifactType = ArtifactTypes.SuggestedTechStack, ContentMarkdown = techStack },
-            new() { ArtifactType = ArtifactTypes.SetupGuide, ContentMarkdown = setupGuide },
-            new() { ArtifactType = ArtifactTypes.UserStories, ContentMarkdown = userStories },
-            new() { ArtifactType = ArtifactTypes.CodebaseSummary, ContentMarkdown = codebaseSummary },
-            new() { ArtifactType = ArtifactTypes.ProjectArchitecture, ContentMarkdown = projectArchitecture }
+            ProjectId = project.Id,
+            ProjectTitle = project.Name,
+            ProjectDescription = project.Description,
+            ProblemStatement = Get("problem_statement"),
+            TargetUsers = Get("target_users"),
+            AppType = Get("app_type"),
+            CoreFeatures = Get("core_features"),
+            Authentication = Get("authentication"),
+            AdminPanel = Get("admin_panel"),
+            ReportsDashboard = Get("reports_dashboard"),
+            Integrations = Get("integrations"),
+            PreferredStack = Get("preferred_stack"),
+            DeploymentPreference = Get("deployment_preference")
         };
+
+        var orderedAgents = artifactAgents
+            .OrderBy(agent => Array.IndexOf(ArtifactOrder, agent.ArtifactType))
+            .ToList();
+
+        if (orderedAgents.Count == 0)
+        {
+            throw new InvalidOperationException("No artifact agents are registered.");
+        }
+
+        var artifacts = new List<ArtifactItemResponse>(orderedAgents.Count);
+
+        foreach (var agent in orderedAgents)
+        {
+            var content = await agent.GenerateAsync(planningContext, cancellationToken);
+
+            artifacts.Add(new ArtifactItemResponse
+            {
+                ArtifactType = agent.ArtifactType,
+                ContentMarkdown = content
+            });
+        }
 
         var artifactEntities = new List<GeneratedArtifact>(artifacts.Count);
 
@@ -145,7 +129,8 @@ public class ArtifactGenerationService(AppDbContext dbContext) : IArtifactGenera
         var latestByType = savedArtifacts
             .GroupBy(x => x.ArtifactType, StringComparer.OrdinalIgnoreCase)
             .Select(x => x.First())
-            .OrderBy(x => x.ArtifactType, StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => Array.IndexOf(ArtifactOrder, x.ArtifactType))
+            .ThenBy(x => x.ArtifactType, StringComparer.OrdinalIgnoreCase)
             .Select(x => new ArtifactItemResponse
             {
                 ArtifactType = x.ArtifactType,
