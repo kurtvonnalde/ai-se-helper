@@ -1,6 +1,4 @@
 namespace WebApi.Entities;
-
-
 public class InterviewAnswer
 {
     public Guid Id { get; set; } = Guid.NewGuid();

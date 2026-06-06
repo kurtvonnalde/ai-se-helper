@@ -9,9 +9,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+//controller
 builder.Services.AddControllers();
+
+//data
+//builder.Services.AddDbContext<AppDbContext>(options =>
+    //options.UseInMemoryDatabase("AiPlanningDb"));
+
+//sql server
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("AiPlanningDb"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+//services
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IInterviewService, InterviewService>();
 builder.Services.AddScoped<IArtifactGenerationService, ArtifactGenerationService>();
@@ -50,10 +61,5 @@ app.UseAuthorization();
 app.UseHttpsRedirection();
 
 app.MapControllers();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
 
 app.Run();

@@ -21,7 +21,4 @@ public static class PlanningQuestionCatalog
 
     public static PlanningQuestion? GetByKey(string key)
         => All.FirstOrDefault(q => q.Key.Equals(key, StringComparison.OrdinalIgnoreCase));
-
-    public static int MaxOrder()
-        => All.Max(q => q.Order);
 }
