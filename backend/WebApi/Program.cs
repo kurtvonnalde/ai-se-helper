@@ -8,6 +8,7 @@ using WebApi.Services;
 using WebApi.AI.Agents;
 using WebApi.AI.Interfaces;
 using WebApi.AI.Services;
+using WebApi.Middleware;
 using WebApi.Options;
 
 
@@ -86,6 +87,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 if (!app.Environment.IsDevelopment())

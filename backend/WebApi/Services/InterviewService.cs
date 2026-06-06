@@ -3,6 +3,7 @@ using WebApi.Interfaces;
 using WebApi.Questions;
 using WebApi.Entities;
 using WebApi.Data;
+using WebApi.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace WebApi.Services;
@@ -14,7 +15,7 @@ public class InterviewService(AppDbContext dbContext) : IInterviewService
     {
         var projectExists = await dbContext.Projects.AnyAsync(x => x.Id == projectId, cancellationToken);
         if (!projectExists)
-            throw new InvalidOperationException("Project not found.");
+            throw new NotFoundException("Project not found.");
 
         var existingActiveSession = await dbContext.InterviewSessions
             .Where(x => x.ProjectId == projectId && !x.IsCompleted)
@@ -24,7 +25,7 @@ public class InterviewService(AppDbContext dbContext) : IInterviewService
         if (existingActiveSession is not null)
         {
             var existingQuestion = PlanningQuestionCatalog.GetByOrder(existingActiveSession.CurrentQuestionOrder)
-                                  ?? throw new InvalidOperationException("Current question not found.");
+                                  ?? throw new NotFoundException("Current question not found.");
 
             return new StartInterviewResponse
             {
@@ -36,7 +37,7 @@ public class InterviewService(AppDbContext dbContext) : IInterviewService
         }
 
         var firstQuestion = PlanningQuestionCatalog.GetByOrder(1)
-                           ?? throw new InvalidOperationException("First question not configured.");
+                           ?? throw new ValidationException("First question not configured.");
 
         var session = new InterviewSession
         {
@@ -94,24 +95,24 @@ public class InterviewService(AppDbContext dbContext) : IInterviewService
             .FirstOrDefaultAsync(x => x.Id == request.SessionId && x.ProjectId == projectId, cancellationToken);
 
         if (session is null)
-            throw new InvalidOperationException("Session not found.");
+            throw new NotFoundException("Session not found.");
 
         if (session.IsCompleted)
-            throw new InvalidOperationException("Session is already completed.");
+            throw new ConflictException("Session is already completed.");
 
         var currentQuestion = PlanningQuestionCatalog.GetByKey(request.QuestionKey);
         if (currentQuestion is null)
-            throw new InvalidOperationException("Invalid question key.");
+            throw new ValidationException("Invalid question key.");
 
         if (string.IsNullOrWhiteSpace(request.AnswerText))
-            throw new InvalidOperationException("Answer text is required.");
+            throw new ValidationException("Answer text is required.");
 
         var alreadyAnswered = await dbContext.InterviewAnswers.AnyAsync(
             x => x.SessionId == session.Id && x.QuestionKey == request.QuestionKey,
             cancellationToken);
 
         if (alreadyAnswered)
-            throw new InvalidOperationException("This question has already been answered.");
+            throw new ConflictException("This question has already been answered.");
 
         var answer = new InterviewAnswer
         {

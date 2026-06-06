@@ -2,7 +2,6 @@ import { type FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { buildArtifactsPath, buildInterviewPath } from "../app/routePaths";
 import { createProject, getProjects } from "../api/projectsApi";
-import CountPill from "../components/CountPill";
 import PageHero from "../components/PageHero";
 import Panel from "../components/Panel";
 import type { ProjectResponse } from "../types/project";
@@ -79,7 +78,7 @@ export default function ProjectsPage() {
   return (
     <main className="page page-projects">
       <PageHero
-        eyebrow="AI Planning Studio"
+        eyebrow="Planning Studio"
         title="Project Workspace"
         description="Capture project context, run guided interviews, and generate planning artifacts in one flow."
       />

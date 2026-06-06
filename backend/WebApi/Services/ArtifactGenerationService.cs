@@ -5,6 +5,7 @@ using WebApi.Entities;
 using WebApi.Entities.Enum;
 using WebApi.AI.Interfaces;
 using WebApi.AI.Models;
+using WebApi.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace WebApi.Services;
@@ -27,13 +28,13 @@ public class ArtifactGenerationService(
     public async Task<GenerateArtifactsResponse> GenerateAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
         var project = await dbContext.Projects.FirstOrDefaultAsync(x => x.Id == projectId, cancellationToken)
-                      ?? throw new InvalidOperationException("Project not found.");
+                      ?? throw new NotFoundException("Project not found.");
 
         var session = await dbContext.InterviewSessions
             .Where(x => x.ProjectId == projectId)
             .OrderByDescending(x => x.StartedAtUtc)
             .FirstOrDefaultAsync(cancellationToken)
-            ?? throw new InvalidOperationException("Interview session not found.");
+            ?? throw new NotFoundException("Interview session not found.");
 
         var answers = await dbContext.InterviewAnswers
             .Where(x => x.SessionId == session.Id)
@@ -65,7 +66,7 @@ public class ArtifactGenerationService(
 
         if (orderedAgents.Count == 0)
         {
-            throw new InvalidOperationException("No artifact agents are registered.");
+            throw new ExternalServiceException("No artifact agents are registered.", "artifact_agent_configuration_missing");
         }
 
         var artifacts = new List<ArtifactItemResponse>(orderedAgents.Count);
@@ -117,7 +118,7 @@ public class ArtifactGenerationService(
 
         if (!projectExists)
         {
-            throw new InvalidOperationException("Project not found.");
+            throw new NotFoundException("Project not found.");
         }
 
         var savedArtifacts = await dbContext.GeneratedArtifacts

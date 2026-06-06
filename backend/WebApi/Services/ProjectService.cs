@@ -2,6 +2,7 @@ using WebApi.DTOs.Projects;
 using WebApi.Interfaces;
 using WebApi.Entities;
 using WebApi.Data;
+using WebApi.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -12,6 +13,12 @@ public class ProjectService(AppDbContext dbContext) : IProjectService
 {
     public async Task<ProjectResponse> CreateAsync(CreateProjectRequest request, CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(request.Title))
+            throw new ValidationException("Project title is required.");
+
+        if (string.IsNullOrWhiteSpace(request.Description))
+            throw new ValidationException("Project description is required.");
+
         var entity = new Project
         {
             Name = request.Title.Trim(),
