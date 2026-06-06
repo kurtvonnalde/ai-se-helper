@@ -25,7 +25,6 @@ bundleconfig.json
 # Secrets
 appsettings.*.json
 !appsettings.json
-!appsettings.Development.json
 
 # Node / frontend
 node_modules/

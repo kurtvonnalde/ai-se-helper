@@ -4,6 +4,13 @@ using WebApi.Data;
 using WebApi.Interfaces;
 using WebApi.Services;
 
+//AI Related
+using WebApi.AI.Agents;
+using WebApi.AI.Interfaces;
+using WebApi.AI.Services;
+using WebApi.Options;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -15,7 +22,7 @@ builder.Services.AddControllers();
 
 //data
 //builder.Services.AddDbContext<AppDbContext>(options =>
-    //options.UseInMemoryDatabase("AiPlanningDb"));
+//options.UseInMemoryDatabase("AiPlanningDb"));
 
 //sql server
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
@@ -36,6 +43,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IInterviewService, InterviewService>();
 builder.Services.AddScoped<IArtifactGenerationService, ArtifactGenerationService>();
+builder.Services.Configure<AzureOpenAiOptions>(
+    builder.Configuration.GetSection(AzureOpenAiOptions.SectionName));
+
+builder.Services.AddSingleton<IChatClientFactory, AzureOpenAiChatClientFactory>();
+builder.Services.AddScoped<IPromptBuilder, PromptBuilder>();
+builder.Services.AddScoped<IArtifactAgent, ProjectBriefAgent>();
+builder.Services.AddScoped<IArtifactAgent, SuggestedTechStackAgent>();
+builder.Services.AddScoped<IArtifactAgent, SetupGuideAgent>();
+builder.Services.AddScoped<IArtifactAgent, UserStoriesAgent>();
+builder.Services.AddScoped<IArtifactAgent, CodebaseSummaryAgent>();
+builder.Services.AddScoped<IArtifactAgent, ProjectArchitectureAgent>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -57,6 +76,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
 
 
 // Configure the HTTP request pipeline.
