@@ -78,9 +78,9 @@ export default function ProjectsPage() {
   return (
     <main className="page page-projects">
       <PageHero
-        eyebrow="Planning Studio"
-        title="Project Workspace"
-        description="Capture project context, run guided interviews, and generate planning artifacts in one flow."
+        eyebrow="AI Project Studio"
+        title="Workspace"
+        description="Open an interview, review generated artifacts, or start a new project from the button above."
       />
 
       
@@ -88,10 +88,7 @@ export default function ProjectsPage() {
       <Panel className="projects-panel reveal-up delay-2">
         <div className="panel-head projects-panel-head">
           <div>
-            <h2>Existing Projects</h2>
-            <p className="muted projects-panel-copy">
-              Open an interview, review generated artifacts, or start a new project from the button above.
-            </p>
+            <h2>Projects</h2>
           </div>
           <div className="top-actions reveal-up delay-1">
         <div className="action-bar">

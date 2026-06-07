@@ -61,12 +61,22 @@ public class InterviewService(AppDbContext dbContext) : IInterviewService
     public async Task<CurrentQuestionResponse?> GetCurrentQuestionAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
         var session = await dbContext.InterviewSessions
-            .Where(x => x.ProjectId == projectId && !x.IsCompleted)
+            .Where(x => x.ProjectId == projectId)
             .OrderByDescending(x => x.StartedAtUtc)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (session is null)
             return null;
+
+        if (session.IsCompleted)
+        {
+            return new CurrentQuestionResponse
+            {
+                SessionId = session.Id,
+                CurrentQuestionOrder = session.CurrentQuestionOrder,
+                SessionCompleted = true
+            };
+        }
 
         var question = PlanningQuestionCatalog.GetByOrder(session.CurrentQuestionOrder);
         if (question is null)
@@ -152,16 +162,17 @@ public class InterviewService(AppDbContext dbContext) : IInterviewService
 
     public async Task<List<InterviewAnswerResponse>> GetAnswersAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
-        var session = await dbContext.InterviewSessions
-            .Where(x => x.ProjectId == projectId)
-            .OrderByDescending(x => x.StartedAtUtc)
+        var latestSessionWithAnswersId = await dbContext.InterviewAnswers
+            .Where(x => x.Session != null && x.Session.ProjectId == projectId)
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .Select(x => x.SessionId)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (session is null)
+        if (latestSessionWithAnswersId == Guid.Empty)
             return new List<InterviewAnswerResponse>();
 
         return await dbContext.InterviewAnswers
-            .Where(x => x.SessionId == session.Id)
+            .Where(x => x.SessionId == latestSessionWithAnswersId)
             .OrderBy(x => x.CreatedAtUtc)
             .Select(x => new InterviewAnswerResponse
             {

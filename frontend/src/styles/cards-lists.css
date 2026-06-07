@@ -69,6 +69,8 @@
   align-items: center;
   border: 0;
   border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   border-radius: 0;
 }
 

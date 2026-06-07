@@ -39,6 +39,7 @@ export default function ArtifactsPage() {
   const navigate = useNavigate();
   const projectId = useRequiredProjectId();
   const [projectTitle, setProjectTitle] = useState("Project");
+  const [description, setDescription] = useState("");
   const [artifacts, setArtifacts] = useState<ArtifactItemResponse[]>([]);
   const [activeArtifactType, setActiveArtifactType] = useState("");
   const [loading, setLoading] = useState(true);
@@ -85,6 +86,7 @@ export default function ArtifactsPage() {
         }
 
         setProjectTitle(project.title);
+        setDescription(project.description);
         setArtifacts(artifactResponse.artifacts);
         setActiveArtifactType((current) =>
           current && artifactResponse.artifacts.some((artifact) => artifact.artifactType === current)
@@ -149,8 +151,8 @@ export default function ArtifactsPage() {
 
       <PageHero
         eyebrow="Generated Output"
-        title={`${projectTitle} Artifacts`}
-        description="Review the latest generated artifacts. Regenerating creates a fresh latest version per artifact type."
+        title={`${projectTitle}`}
+        description={`${description}`}
         className="delay-1"
       />
 

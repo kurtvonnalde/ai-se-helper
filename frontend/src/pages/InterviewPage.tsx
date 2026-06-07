@@ -8,6 +8,7 @@ import {
   startInterview,
   submitAnswer,
 } from "../api/interviewApi";
+import type { ApiError } from "../api/axios";
 import { generateArtifacts } from "../api/artifactsApi";
 import CountPill from "../components/CountPill";
 import PageHero from "../components/PageHero";
@@ -16,6 +17,8 @@ import type {
   InterviewAnswerResponse,
   SubmitAnswerResponse,
 } from "../types/interview";
+
+const TOTAL_INTERVIEW_QUESTIONS = 10;
 
 export default function InterviewPage() {
   const navigate = useNavigate();
@@ -29,6 +32,9 @@ export default function InterviewPage() {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const chatThreadRef = useRef<HTMLDivElement | null>(null);
+  const completedByAnswerCount = answers.length >= TOTAL_INTERVIEW_QUESTIONS;
+  const isSessionLocked = sessionCompleted || completedByAnswerCount;
+  const canSubmit = !isSessionLocked && !loading && !!sessionId && !!questionKey;
 
   const loadAnswers = async () => {
     const data = await getAnswers(projectId);
@@ -41,9 +47,44 @@ export default function InterviewPage() {
     const initializeInterview = async () => {
       try {
         setLoading(true);
+        try {
+          const current = await getCurrentQuestion(projectId);
+          const existingAnswers = await getAnswers(projectId);
+
+          if (!isActive) {
+            return;
+          }
+
+          setSessionId(current.sessionId);
+          setQuestionKey(current.questionKey);
+          setQuestionText(current.questionText);
+          setSessionCompleted(current.sessionCompleted || existingAnswers.length >= TOTAL_INTERVIEW_QUESTIONS);
+          setAnswers(existingAnswers);
+          return;
+        } catch (error) {
+          const apiError = error as ApiError;
+
+          if (apiError?.status !== 404) {
+            throw error;
+          }
+        }
+
+        const existingAnswers = await getAnswers(projectId);
+
+        if (!isActive) {
+          return;
+        }
+
+        if (existingAnswers.length > 0) {
+          setSessionId("");
+          setQuestionKey("");
+          setQuestionText("");
+          setSessionCompleted(true);
+          setAnswers(existingAnswers);
+          return;
+        }
 
         const start = await startInterview(projectId);
-        const existingAnswers = await getAnswers(projectId);
 
         if (!isActive) {
           return;
@@ -53,20 +94,7 @@ export default function InterviewPage() {
         setQuestionKey(start.questionKey);
         setQuestionText(start.questionText);
         setSessionCompleted(false);
-        setAnswers(existingAnswers);
-      } catch {
-        const current = await getCurrentQuestion(projectId);
-        const existingAnswers = await getAnswers(projectId);
-
-        if (!isActive) {
-          return;
-        }
-
-        setSessionId(current.sessionId);
-        setQuestionKey(current.questionKey);
-        setQuestionText(current.questionText);
-        setSessionCompleted(current.sessionCompleted);
-        setAnswers(existingAnswers);
+        setAnswers([]);
       } finally {
         if (isActive) {
           setLoading(false);
@@ -91,7 +119,7 @@ export default function InterviewPage() {
   const handleSubmitAnswer = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!answerText.trim()) return;
+    if (!canSubmit || !answerText.trim()) return;
 
     try {
       setLoading(true);
@@ -151,7 +179,7 @@ export default function InterviewPage() {
     ]),
   ];
 
-  if (sessionCompleted) {
+  if (isSessionLocked) {
     chatMessages.push({
       id: "completed",
       role: "system",
@@ -187,15 +215,15 @@ export default function InterviewPage() {
         </div>
       </div>
 
-      <PageHero eyebrow="Guided Session" title="Planning Interview" className="delay-1" />
+      <PageHero eyebrow="AI Guided Session" title="Planning Phase" className="delay-1" />
 
       <section className="grid-two interview-grid">
         <Panel className="interview-chat-panel reveal-up delay-1">
           <div className="panel-head chat-panel-head">
             <div>
-              <h2>Interview Chat</h2>
+              <h2>Interview</h2>
               <p className="muted chat-panel-copy">
-                Answer naturally. Each reply advances the planning conversation.
+                There will be 10 questions in total, covering key areas of project context and planning. Answer each question to progress through the interview and unlock the final artifact generation step.
               </p>
             </div>
           </div>
@@ -212,7 +240,7 @@ export default function InterviewPage() {
             ))}
           </div>
 
-          {!sessionCompleted ? (
+          {!isSessionLocked ? (
             <form onSubmit={handleSubmitAnswer} className="chat-composer">
               <textarea
                 value={answerText}
@@ -220,13 +248,18 @@ export default function InterviewPage() {
                 rows={4}
                 className="field-input field-textarea chat-input"
                 placeholder="Type your reply here..."
+                disabled={!canSubmit}
               />
 
               <div className="chat-composer-actions">
                 <p className="muted helper-text chat-helper-text">
-                  Artifacts stay in a separate page after the interview is complete.
+                 Upon completion you will be able to generate a project plan.
                 </p>
-                <button type="submit" className="btn btn-primary" disabled={loading}>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={!canSubmit}
+                >
                   {loading ? "Sending..." : "Send Reply"}
                 </button>
               </div>
@@ -246,24 +279,28 @@ export default function InterviewPage() {
         <Panel className="reveal-up delay-2" as="aside">
           <div className="panel-head">
             <h2>Session Status</h2>
-            <CountPill count={answers.length} />
+            <span className="pill">{isSessionLocked ? "Completed" : "Active"}</span>
           </div>
 
           <div className="answers-list interview-status-list">
             <div className="answer-item interview-status-item">
               <strong>Responses Saved</strong>
-              <p>{answers.length} message{answers.length === 1 ? "" : "s"} captured in this interview.</p>
+              <p>
+                {answers.length} message{answers.length === 1 ? "" : "s"} captured in this interview.
+                {" "}
+                <CountPill count={answers.length} />
+              </p>
             </div>
 
             <div className="answer-item interview-status-item">
               <strong>Current State</strong>
-              <p>{sessionCompleted ? "Interview complete." : "Waiting for your next chat reply."}</p>
+              <p>{isSessionLocked ? "Interview complete." : "Waiting for your next chat reply."}</p>
             </div>
 
             <div className="answer-item interview-status-item">
               <strong>Next Step</strong>
               <p>
-                {sessionCompleted
+                {isSessionLocked
                   ? "Generate artifacts or review the completed interview transcript."
                   : "Reply to the latest assistant message to continue the planning flow."}
               </p>
